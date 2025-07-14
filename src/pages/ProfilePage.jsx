@@ -1,25 +1,24 @@
-import React from "react";
-import Header from "../components/Header";
-import { useEffect } from "react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useMyContext } from "../context/MyContext";
+import { Header } from "../components/Header";
 
 const ProfilePage = () => {
+  const { setCount } = useMyContext();
   const [products, setProducts] = useState([]);
-
+  const [editProductId, setEditProductId] = useState("");
+  const [updatedPrice, setUpdatedPrice] = useState(-1);
   const getData = async () => {
     try {
       const resp = await fetch(`${import.meta.env.VITE_BACKEND_URL}/products`, {
         method: "GET",
       });
       const result = await resp.json();
-      console.log("result--->", result);
-      setProducts(result.data.product);
-    } catch (error) {
-      console.log(error.message);
+      console.log("result -->", result);
+      setProducts(result.data.products);
+    } catch (err) {
+      console.warn("error while getting products -->", err.message);
     }
   };
-
-  console.log(products);
 
   useEffect(() => {
     getData();
@@ -28,12 +27,13 @@ const ProfilePage = () => {
   const handleSubmit = async (e) => {
     try {
       e.preventDefault();
+
       const title = e.target.title.value;
       const price = e.target.price.value;
       const description = e.target.description.value;
       const quantity = e.target.quantity.value;
+
       const resp = await fetch(`${import.meta.env.VITE_BACKEND_URL}/products`, {
-        // Added await here
         method: "POST",
         body: JSON.stringify({
           title: title,
@@ -46,147 +46,147 @@ const ProfilePage = () => {
         },
       });
 
-      if (resp.status === 201) {
-        // Changed == to === and checked for 201 status
-        alert("Product added successfully!");
-        getData(); // Refresh products after successful addition
+      if (resp.status == "201") {
+        alert("Product added!");
+        getData();
         console.log(resp);
-        e.target.reset(); // Clear the form fields
       } else {
         const result = await resp.json();
         alert(`Invalid data: ${result.message}`);
       }
     } catch (err) {
-      console.warn("cannot create product--->", err.message);
-      alert(`Cannot create the product: ${err.message}`);
+      console.warn("Cannot create product -->", err.message);
+      alert(`Cannot create product: ${err.message}`);
     }
   };
+
+  const handleEditProduct = async (productId) => {
+    try {
+      const res = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/products/${productId}`,
+        {
+          method: "PATCH",
+          body: JSON.stringify({
+            price: updatedPrice,
+          }),
+          headers: { "content-type": "application/json" },
+        }
+      );
+
+      if (res.status === 200) {
+        alert("Product Updated");
+        setEditProductId("");
+        getData();
+      } else {
+        const result = await res.json();
+        alert(`Error while updating product: ${result.message}`);
+      }
+    } catch (err) {
+      alert("Cannot update product:", err.message);
+      console.log("Cannot update product:", err.message);
+    }
+  };
+
   return (
     <div>
-      <Header />
-      <div className="container mx-auto p-4">
+      <Header/>
+
+      <div>
         <form
           onSubmit={handleSubmit}
-          className="mb-8 p-6 bg-white shadow-md rounded-lg max-w-lg mx-auto"
+          className="mx-auto my-4 flex flex-col gap-5 p-6 bg-blue-200 max-w-150"
         >
-          <h2 className="text-2xl font-bold mb-6 text-center text-blue-700">
-            Add New Product
-          </h2>
-          <div className="mb-4">
-            <label
-              htmlFor="title"
-              className="block text-gray-700 text-sm font-bold mb-2"
-            >
-              Title
-            </label>
+          <div className="flex gap-4">
+            <label>Title</label>
             <input
-              id="title"
               name="title"
               type="text"
-              placeholder="Product Title"
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              className="border-1 py-1 px-2 rounded-md"
             />
           </div>
-          <div className="mb-4">
-            <label
-              htmlFor="price"
-              className="block text-gray-700 text-sm font-bold mb-2"
-            >
-              Price
-            </label>
+          <div className="flex gap-4">
+            <label>Price</label>
             <input
-              id="price"
               name="price"
               type="number"
-              placeholder="Product Price"
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              className="border-1 py-1 px-2 rounded-md"
             />
           </div>
-          <div className="mb-4">
-            <label
-              htmlFor="description"
-              className="block text-gray-700 text-sm font-bold mb-2"
-            >
-              Description
-            </label>
-            <textarea
-              id="description"
-              name="description"
-              placeholder="Product Description"
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline h-24 resize-none"
-            ></textarea>
-          </div>
-          <div className="mb-6">
-            <label
-              htmlFor="quantity"
-              className="block text-gray-700 text-sm font-bold mb-2"
-            >
-              Quantity
-            </label>
+          <div className="flex gap-4">
+            <label>Description</label>
             <input
-              id="quantity"
+              name="description"
+              type="text"
+              className="border-1 py-1 px-2 rounded-md"
+            />
+          </div>
+          <div className="flex gap-4">
+            <label>Quantity</label>
+            <input
               name="quantity"
               type="number"
-              placeholder="Product Quantity"
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              className="border-1 py-1 px-2 rounded-md"
             />
           </div>
-
-          <button
-            type="submit"
-            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full"
-          >
-            Add Product
-          </button>
+          <button className="border-1 py-1 px-2 rounded-md">Add Product</button>
         </form>
       </div>
 
-      <div className="container mx-auto p-4">
-        <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">
-          Available Products
-        </h2>
-        <div className="container mx-auto p-4 py-8">
-          <h2 className="text-3xl font-extrabold mb-8 text-center text-gray-800">
-            Available Products
-          </h2>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
-            {products.map((elem) => (
-              <div
-                key={elem._id}
-                className="bg-cyan-200 rounded-xl shadow-lg overflow-hidden 
-                   transform transition-all duration-300 ease-in-out 
-                   hover:scale-105 hover:shadow-xl cursor-pointer
-                   relative group"
-              >
-                <div className="p-6 flex flex-col justify-between h-full">
-                  <div>
-                    <h3 className="text-xl font-bold text-gray-900 mb-3 leading-tight">
-                      {elem.title}
-                    </h3>
-                    <p className="text-blue-600 text-2xl font-extrabold mb-3">
-                      ${elem.price.toFixed(2)}
-                    </p>
-                    <p className="text-gray-600 text-sm mb-4 line-clamp-3">
-                      {elem.description}
-                    </p>
-                  </div>
-                  <div className="mt-auto">
-                    {" "}
-                    {/* Ensures quantity stays at the bottom */}
-                    <p className="text-gray-500 text-sm">
-                      Quantity:{" "}
-                      <span className="font-semibold">{elem.quantity}</span>
-                    </p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+      <div className="flex flex-wrap gap-6 justify-center">
+        {products.map((elem) => {
+          return (
+            <div key={elem._id} className="p-4 rounded-lg border-1">
+              <p>{elem.title}</p>
+              {elem._id === editProductId ? (
+                <>
+                  <input
+                    value={updatedPrice}
+                    onChange={(e) => setUpdatedPrice(e.target.value)}
+                    className="py-1 px-2 border-1 rounded-md"
+                  />
+                  <button
+                    onClick={() => {
+                      setEditProductId("");
+                    }}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={() => {
+                      handleEditProduct(elem._id);
+                    }}
+                  >
+                    Update
+                  </button>
+                </>
+              ) : (
+                <>
+                  <p>{elem.price}</p>
+                  <button
+                    onClick={() => {
+                      setEditProductId(elem._id);
+                      setUpdatedPrice(elem.price);
+                    }}
+                    className="py-1 px-2 border-1 rounded-md"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => {
+                      setCount((prev) => prev + 1);
+                    }}
+                    className="py-1 px-2 border-1 rounded-md"
+                  >
+                    ++
+                  </button>
+                </>
+              )}
+            </div>
+          );
+        })}
       </div>
     </div>
   );
 };
 
-export default ProfilePage;
+export { ProfilePage };

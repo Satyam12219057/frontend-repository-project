@@ -7,4 +7,4 @@ const SearchPage = () => {
   )
 }
 
-export default SearchPage
+export {SearchPage}

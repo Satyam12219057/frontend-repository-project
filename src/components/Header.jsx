@@ -1,8 +1,10 @@
 
 import React from 'react'
 import { Link } from 'react-router'
+ 
 
 const Header = () => {
+ 
   return (
     <div className='py-4 px-6 flex justify-between items-center bg-amber-200 shadow-md'>
       <div className='font-bold text-2xl text-emerald-700'>Shopping App</div>
@@ -29,4 +31,5 @@ const Header = () => {
   )
 }
 
-export default Header
+export  {Header}
+

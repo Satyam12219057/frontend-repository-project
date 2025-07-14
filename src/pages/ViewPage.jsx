@@ -7,4 +7,4 @@ const ViewPage = () => {
   )
 }
 
-export default ViewPage
+export  {ViewPage}
